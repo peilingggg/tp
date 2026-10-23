@@ -50,6 +50,8 @@ public class HelpCommand implements Command {
                 "Ingredient exclusions match complete names, ignoring case and extra spaces.",
                 "view-diet - View current dietary preferences.",
                 "Format: view-diet",
+                "clear-diet - Remove all dietary restrictions.",
+                "Format: clear-diet",
                 "",
                 "help - Show all commands and what they do.",
                 "Format: help",

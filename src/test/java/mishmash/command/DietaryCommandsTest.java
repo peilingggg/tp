@@ -175,7 +175,10 @@ class DietaryCommandsTest {
         assertTrue(execute("view-diet").contains("Diet: none"));
         assertTrue(pending.confirmationPrompt(book).isEmpty());
         pending.execute(book);
+        Command clear = parser.parseCommand("clear-diet");
         assertTrue(execute("view-diet").contains("Diet: vegan"));
+        clear.execute(book);
+        assertTrue(execute("view-diet").contains("Diet: none"));
     }
 
     @Test
@@ -187,6 +190,26 @@ class DietaryCommandsTest {
     }
 
     @Test
+    void clearDiet_removesRestrictionsAndPreservesCompatiblePlan() throws MishMashException {
+        addSuitableRecipes();
+        execute("set-diet diet/vegan");
+        execute("generate-plan d/1");
+        execute("generate-list");
+        MealPlan plan = active.get().orElseThrow();
+        execute("clear-diet");
+        assertSame(plan, active.get().orElseThrow());
+        book.remove(0);
+        book.remove(0);
+        book.remove(0);
+        book.add(createRecipe("Unknown1", 600, null));
+        book.add(createRecipe("Unknown2", 600, null));
+        book.add(createRecipe("Unknown3", 600, null));
+        execute("generate-plan d/1");
+        assertTrue(active.get().orElseThrow().getDays().get(0).getMeals().stream()
+                .allMatch(recipe -> !recipe.getFoodInfo().isClassified()));
+    }
+
+    @Test
     void invalidDietaryCommands_preservePreferencesPlanAndGroceries() throws MishMashException {
         addSuitableRecipes();
         execute("set-diet diet/vegan");
@@ -195,7 +218,7 @@ class DietaryCommandsTest {
         MealPlan plan = active.get().orElseThrow();
         List<GroceryItem> groceries = active.getGroceryList().orElseThrow();
         for (String command : List.of("set-diet", "set-diet unknown", "set-diet diet/unknown", "set-diet avoid/",
-                "view-diet extra")) {
+                "view-diet extra", "clear-diet extra")) {
             MishMashException error = assertThrows(MishMashException.class, () -> execute(command));
             assertTrue(error.getMessage().contains("Format: " + command.split(" ")[0]));
             assertSame(plan, active.get().orElseThrow());
@@ -222,6 +245,7 @@ class DietaryCommandsTest {
         String help = execute("help");
         assertTrue(help.contains("Format: set-diet"));
         assertTrue(help.contains("Format: view-diet"));
+        assertTrue(help.contains("Format: clear-diet"));
         assertTrue(help.contains("Unclassified recipes are excluded"));
         assertTrue(help.contains("tree-nut"));
     }

@@ -83,7 +83,7 @@ public class Parser {
     public static final String COMMAND_USAGE = String.join(System.lineSeparator(),
             ADD_RECIPE_USAGE, LIST_RECIPE_USAGE, DELETE_RECIPE_USAGE, GENERATE_PLAN_USAGE,
             VIEW_PLAN_USAGE, CHECK_SHORTFALL_USAGE, GENERATE_LIST_USAGE, VIEW_LIST_USAGE,
-            DietaryPreferencesParser.USAGE, "Format: view-diet",
+            DietaryPreferencesParser.USAGE, "Format: view-diet", "Format: clear-diet",
             "Format: help", "Format: bye");
 
     /**
@@ -237,6 +237,11 @@ public class Parser {
         if (commandWord.equals("view-diet")) {
             requireNoDietArguments(commandWord, arguments);
             return recipeBook -> dietarySettings.get().describe();
+        }
+        if (commandWord.equals("clear-diet")) {
+            requireNoDietArguments(commandWord, arguments);
+            return new SetDietCommand(DietaryPreferences.createUnrestricted(),
+                    dietarySettings, activeMealPlan, mealPlanGenerator);
         }
         if (commandWord.equals("help")) {
             if (!arguments.isBlank()) {
